@@ -5,9 +5,11 @@ const token = '5080119136:AAHM7RJ3wWP-P3zkAset8_bXigyuOorXEsI';
 const bot = new TelegramBot(token, { polling: true });
 
 const GOLD_API_KEY = 'bb7459acdad77a8554cd76d21317e332';
+const DEFAULT_CHAT_ID='1536532575'
 
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
+  // console.log(chatId)
   let message;
 
   switch (msg.text) {
@@ -63,3 +65,14 @@ function formatGoldMessage(data) {
 ${lines}
 `;
 }
+
+
+const cron = require("node-cron");
+
+// Chạy cronjob mỗi ngày lúc 2 giờ sáng
+cron.schedule("0 8 * * *", async () => {
+  console.log("Cronjob backend chạy vào 2 giờ sáng");
+  // Thực hiện công việc: gửi email, cập nhật DB...
+  let message = await getGoldPrice(); 
+  bot.sendMessage(DEFAULT_CHAT_ID, message, { parse_mode: "Markdown" });
+});

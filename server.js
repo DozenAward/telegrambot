@@ -3,6 +3,8 @@ const axios = require('axios');
 
 const token = '5080119136:AAHM7RJ3wWP-P3zkAset8_bXigyuOorXEsI';
 const bot = new TelegramBot(token, { polling: true });
+// const bot = new TelegramBot(token);
+// bot.setWebHook("https://telegrambot-2p3h.onrender.com/bot");
 
 const GOLD_API_KEY = 'bb7459acdad77a8554cd76d21317e332';
 const DEFAULT_CHAT_ID = '1536532575'
@@ -11,15 +13,27 @@ const express = require("express");
 const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // serve file html
+console.log(path.join(__dirname, "index.html"));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log("Web running...");
+app.use(express.json());
+
+app.post("/bot", (req, res) => {
+  console.log("📩 Nhận:", req.body?.message?.text);
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+app.listen(PORT, async () => {
+  console.log("✅  Web running...");
+
+  // await bot.setWebHook("https://telegrambot-2p3h.onrender.com");
+  // console.log("✅ Webhook ready");
 });
 
 bot.on('message', async (msg) => {
@@ -61,7 +75,7 @@ bot.on('message', async (msg) => {
         "/stock [mã] — Giá cổ phiếu. Ví dụ: /stock ACB";
   }
 
-  await bot.sendMessage(chatId, message, { parse_mode: "HTML" });
+  await bot.sendMessage(chatId, message, { parse_mode: "Markdown" });
 });
 
 
@@ -180,15 +194,15 @@ async function getStockPrice(symbol = "ACB") {
     const updateTime = formatTime(d.expectedLastUpdate);
 
     return (
-      `${arrow} <b>${d.stockSymbol}</b>\n` +
+      `${arrow} *${d.stockSymbol}*\n` +
       `⏱ Cập nhật: ${updateTime}\n` +
-      `💰 Giá hiện tại: <b>${fmt(d.matchedPrice)}</b>\n` +
+      `💰 Giá hiện tại: *${fmt(d.matchedPrice)}*\n` +
       `📊 +/-: ${d.priceChange > 0 ? "+" : ""}${fmt(d.priceChange)} (${d.priceChangePercent}%)\n` +
       `📌 TC: ${fmt(d.refPrice)}\n\n` +
 
       // `📥 <b>Top 3 MUA</b>\n${topBid}\n\n` +
       // `📤 <b>Top 3 BÁN</b>\n${topOffer}\n\n` +
-      `📤 <b>Top 3</b>\n${top3}\n\n` +
+      `📤 *Top 3*\n${top3}\n\n` +
 
       `📦 KL: ${fmt(d.nmTotalTradedQty)}\n` +
       `💵 GT: ${(d.nmTotalTradedValue / 1e9).toFixed(2)} tỷ`

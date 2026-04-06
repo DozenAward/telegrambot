@@ -13,13 +13,13 @@ const express = require("express");
 const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// serve file html
-console.log(path.join(__dirname, "index.html"));
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.send("Bot is running 🚀");
 });
+
+const PORT = process.env.PORT || 3009;
+app.listen(PORT, () => console.log("Server running..."));
 
 app.use(express.json());
 

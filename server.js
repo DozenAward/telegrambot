@@ -7,6 +7,21 @@ const bot = new TelegramBot(token, { polling: true });
 const GOLD_API_KEY = 'bb7459acdad77a8554cd76d21317e332';
 const DEFAULT_CHAT_ID = '1536532575'
 
+const express = require("express");
+const path = require("path");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// serve file html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+app.listen(PORT, () => {
+  console.log("Web running...");
+});
+
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text?.trim() ?? "";
@@ -183,3 +198,6 @@ async function getStockPrice(symbol = "ACB") {
     return `❗ Lỗi lấy dữ liệu ${symbol}: ${e.message}`;
   }
 }
+
+
+

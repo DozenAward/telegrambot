@@ -29,12 +29,7 @@ app.post("/bot", (req, res) => {
   res.sendStatus(200);
 });
 
-app.listen(PORT, async () => {
-  console.log("✅  Web running...");
 
-  // await bot.setWebHook("https://telegrambot-2p3h.onrender.com");
-  // console.log("✅ Webhook ready");
-});
 
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;

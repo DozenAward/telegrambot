@@ -1,5 +1,5 @@
-import TelegramBot from 'node-telegram-bot-api';
-import axios from 'axios';
+const TelegramBot = require('node-telegram-bot-api');
+const axios = require('axios');
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(token);
@@ -12,7 +12,7 @@ console.log('✅ Bot initialized');
 // WEBHOOK HANDLER (Vercel sẽ gọi cái này)
 // ========================================
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   // ✅ POST: Telegram gửi update
   if (req.method === 'POST') {
     try {

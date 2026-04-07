@@ -3,7 +3,6 @@ import axios from 'axios';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(token);
-const WEBHOOK_URL = process.env.WEBHOOK_URL;
 const GOLD_API_KEY = process.env.GOLD_API_KEY;
 
 console.log('✅ Bot initialized');
@@ -13,40 +12,42 @@ console.log('✅ Bot initialized');
 // ========================================
 
 export default async function handler(req, res) {
-  // ✅ POST: Telegram gửi update
   if (req.method === 'POST') {
     try {
       console.log('📨 Update từ Telegram:', req.body?.message?.text);
-      await bot.processUpdate(req.body);
+      
+      // ✅ NHẬN UPDATE
+      const msg = req.body?.message;
+      
+      if (msg) {
+        // ✅ XỬ LÝ MESSAGE TẠI ĐÂY (không dùng bot.on)
+        await handleMessage(msg);
+      }
+      
       res.status(200).json({ ok: true });
     } catch (error) {
       console.error('❌ Lỗi:', error.message);
       res.status(500).json({ error: error.message });
     }
-  }
-  // GET: Kiểm tra bot chạy không
-  else if (req.method === 'GET') {
+  } else if (req.method === 'GET') {
     res.status(200).json({ message: 'Bot is running 🚀' });
-  }
-  // DELETE: Reset webhook
-  else if (req.method === 'DELETE') {
+  } else if (req.method === 'DELETE') {
     try {
       await bot.deleteWebHook();
       res.status(200).json({ message: 'Webhook deleted' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-  }
-  else {
+  } else {
     res.status(405).json({ error: 'Method not allowed' });
   }
 }
 
 // ========================================
-// MESSAGE HANDLER
+// MESSAGE HANDLER (✅ CHÍNH)
 // ========================================
 
-bot.on('message', async (msg) => {
+async function handleMessage(msg) {
   const chatId = msg.chat.id;
   const text = msg.text?.trim() ?? '';
   
@@ -88,10 +89,11 @@ bot.on('message', async (msg) => {
 
   try {
     await bot.sendMessage(chatId, message, { parse_mode: 'HTML' });
+    console.log(`✅ Gửi: ${message.substring(0, 50)}...`);
   } catch (error) {
     console.error('❌ Lỗi gửi tin nhắn:', error.message);
   }
-});
+}
 
 // ========================================
 // API FUNCTIONS

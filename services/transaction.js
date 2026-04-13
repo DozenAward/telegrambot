@@ -1,4 +1,5 @@
 import { getTransactions } from './db.js';
+import { getAllTransactions } from './db.js';
 import { getStockPriceRaw } from './stock.js';
 import { CommandParser } from '../utils/CommandParser.js';
 import { PLCommand } from '../utils/PLCommand.js';
@@ -10,11 +11,11 @@ export async function getListStock(chatId, text) {
   const { options } = CommandParser.parse(text);
 
   const symbol = options.s?.toUpperCase();
-  const sortBy = options.sort || 'symbol';
+  const sortBy = options.sort || 'transaction_date';
   const order = (options.order || 'asc').toLowerCase();
 
   // 👉 lấy toàn bộ transaction
-  let transactions = await getTransactions(chatId);
+  let transactions = await getAllTransactions(chatId);
 
   // 🎯 filter theo symbol nếu có
   if (symbol) {

@@ -72,14 +72,14 @@ export async function getStockPriceRaw(symbol) {
         headers: {
           accept: 'application/json, text/plain, */*',
           referer: 'https://iboard.ssi.com.vn/',
-          'user-agent': 'Mozilla/5.0',
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
           'api-key': 'Flh4hH9L.UCiJuphpJbPIKLyglbAem'
         }
       }
     );
 
     const json = await res.json();
-    // console.log("Data: "+json);
+    console.log("Data: "+JSON.stringify(json, null, 2));
     const d = json?.data;
 
     if (!d) return 0;

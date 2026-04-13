@@ -3,6 +3,8 @@ import { getStockPrice } from '../services/stock.js';
 import { getGoldPrice } from '../services/gold.js';
 import { handlePLCommand } from '../services/transaction.js';
 import { handleBuyCommand } from '../services/transaction.js';
+import { getListStock } from '../services/transaction.js';
+
 
 
 
@@ -36,7 +38,7 @@ export async function handleMessage(msg) {
       break;
 
     case '/list_stock': {
-      message = await handleBuyCommand(chatId ,text , username);
+      message = await getListStock(chatId ,text , username);
       break;
 
     }

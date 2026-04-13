@@ -53,6 +53,22 @@ export async function getTransactions(chatId, symbol) {
     return data;
 }
 
+export async function getAllTransactions(chatId) {
+    const { data, error } = await supabase
+        .from('portfolio')
+        .select('*')
+        .eq('chat_id', chatId)
+        // .eq('symbol', symbol)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error(error);
+        return [];
+    }
+
+    return data;
+}
+
 // lấy dữ liệu
 export async function getPosition(chatId, symbol) {
     const { data } = await supabase

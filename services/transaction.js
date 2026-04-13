@@ -11,17 +11,13 @@ export async function getListStock(chatId, text) {
   const { options } = CommandParser.parse(text);
 
   const symbol = options.s?.toUpperCase();
-  const sortBy = options.sort || 'transaction_date';
+  const sortBy = options.sort || 'symbol';
   const order = (options.order || 'asc').toLowerCase();
 
-  // 👉 lấy toàn bộ transaction
   let transactions = await getAllTransactions(chatId);
 
-  // 🎯 filter theo symbol nếu có
   if (symbol) {
-    transactions = transactions.filter(
-      (t) => t.symbol === symbol
-    );
+    transactions = transactions.filter((t) => t.symbol === symbol);
   }
 
   if (!transactions.length) {
@@ -38,15 +34,23 @@ export async function getListStock(chatId, text) {
     grouped[t.symbol].push(t);
   }
 
-  // 🎯 tính position từng mã
-  let result = Object.entries(grouped).map(([sym, trans]) => {
-    const calc = calculatePosition(trans, 0); // nếu cần price thì fetch sau
-    return {
+  // 🚀 tính toán + gọi giá realtime
+  let result = [];
+
+  for (const [sym, trans] of Object.entries(grouped)) {
+    const price = await getStockPriceRaw(sym); // 🔥 lấy giá realtime
+
+    const calc = calculatePosition(trans, price);
+
+    result.push({
       symbol: sym,
       qty: calc.totalQty,
       avgPrice: calc.avgPrice,
-    };
-  });
+      price,
+      pl: calc.pl,
+      percent: calc.percent,
+    });
+  }
 
   // 🎯 sort
   result.sort((a, b) => {
@@ -63,12 +67,17 @@ export async function getListStock(chatId, text) {
   });
 
   // 🎯 format output
-  const lines = result.map(
-    (r) =>
-      `📊 ${r.symbol} | SL: ${r.qty} | ⚖️ ${r.avgPrice.toFixed(2)}`
-  );
+  const lines = result.map((r) => {
+    const color = r.pl >= 0 ? '🟢' : '🔴';
 
-  return lines.join('\n');
+    return (
+      `📊 ${r.symbol} | SL: ${r.qty}\n` +
+      `⚖️ ${r.avgPrice.toFixed(2)} → 💰 ${r.price}\n` +
+      `${color} ${r.pl.toLocaleString()} (${r.percent.toFixed(2)}%)`
+    );
+  });
+
+  return lines.join('\n\n');
 }
 
 export async function handleBuyCommand(chatId, text, username) {

@@ -79,6 +79,23 @@ export async function getListStock(chatId, text) {
         );
     });
 
+    // 👉 Tính tổng
+    const totalCost = result.reduce((sum, r) => sum + r.avgPrice * r.qty, 0);
+    const totalValue = result.reduce((sum, r) => sum + r.price * r.qty, 0);
+    const totalPL = totalValue - totalCost;
+    const totalPercent = (totalPL / totalCost) * 100;
+
+    // 👉 Nếu > 1 dòng thì thêm tổng
+    if (result.length > 1) {
+        const totalColor = totalPL >= 0 ? '🟢' : '🔴';
+
+        lines.push(
+            `\n📦 TỔNG DANH MỤC\n` +
+            `💵 Tổng vốn: ${totalCost.toLocaleString()}\n` +
+            `💰 Tổng giá trị: ${totalValue.toLocaleString()}\n` +
+            `${totalColor} Lãi/Lỗ: ${totalPL.toLocaleString()} (${totalPercent.toFixed(2)}%)`
+        );
+    }
     return lines.join('\n\n');
 }
 

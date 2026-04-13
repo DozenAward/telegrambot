@@ -8,7 +8,6 @@ const supabase = createClient(
 
 
 
-
 // thêm giao dịch
 export async function addTransaction(chatId, username, symbol, price, qty, fee, add_fee, date_time, type = 'BUY') {
     // console.log('ENV:', process.env.SUPABASE_URL);

@@ -8,76 +8,78 @@ import { addTransaction } from '../services/db.js';
 
 
 export async function getListStock(chatId, text) {
-  const { options } = CommandParser.parse(text);
+    const { options } = CommandParser.parse(text);
 
-  const symbol = options.s?.toUpperCase();
-  const sortBy = options.sort || 'symbol';
-  const order = (options.order || 'asc').toLowerCase();
+    const symbol = options.s?.toUpperCase();
+    const sortBy = options.sort || 'symbol';
+    const order = (options.order || 'asc').toLowerCase();
 
-  let transactions = await getAllTransactions(chatId);
+    let transactions = await getAllTransactions(chatId);
 
-  if (symbol) {
-    transactions = transactions.filter((t) => t.symbol === symbol);
-  }
-
-  if (!transactions.length) {
-    return '❗ Không có dữ liệu';
-  }
-
-  // 🎯 group theo symbol
-  const grouped = {};
-
-  for (const t of transactions) {
-    if (!grouped[t.symbol]) {
-      grouped[t.symbol] = [];
+    if (symbol) {
+        transactions = transactions.filter((t) => t.symbol === symbol);
     }
-    grouped[t.symbol].push(t);
-  }
 
-  // 🚀 tính toán + gọi giá realtime
-  let result = [];
+    if (!transactions.length) {
+        return '❗ Không có dữ liệu';
+    }
 
-  for (const [sym, trans] of Object.entries(grouped)) {
-    const price = await getStockPriceRaw(sym); // 🔥 lấy giá realtime
+    // 🎯 group theo symbol
+    const grouped = {};
 
-    const calc = calculatePosition(trans, price);
+    for (const t of transactions) {
+        if (!grouped[t.symbol]) {
+            grouped[t.symbol] = [];
+        }
+        grouped[t.symbol].push(t);
+    }
 
-    result.push({
-      symbol: sym,
-      qty: calc.totalQty,
-      avgPrice: calc.avgPrice,
-      price,
-      pl: calc.pl,
-      percent: calc.percent,
+    // 🚀 tính toán + gọi giá realtime
+    let result = [];
+
+    for (const [sym, trans] of Object.entries(grouped)) {
+        const price = await getStockPriceRaw(sym); // 🔥 lấy giá realtime
+
+        const calc = calculatePosition(trans, price);
+
+        result.push({
+            symbol: sym,
+            qty: calc.totalQty,
+            avgPrice: calc.avgPrice,
+            price,
+            pl: calc.pl,
+            percent: calc.percent,
+        });
+    }
+
+    // 🎯 sort
+    result.sort((a, b) => {
+        let valA = a[sortBy];
+        let valB = b[sortBy];
+
+        if (typeof valA === 'string') {
+            return order === 'asc'
+                ? valA.localeCompare(valB)
+                : valB.localeCompare(valA);
+        }
+
+        return order === 'asc' ? valA - valB : valB - valA;
     });
-  }
 
-  // 🎯 sort
-  result.sort((a, b) => {
-    let valA = a[sortBy];
-    let valB = b[sortBy];
+    // 🎯 format output
+    const lines = result.map((r) => {
+        const color = r.pl >= 0 ? '🟢' : '🔴';
 
-    if (typeof valA === 'string') {
-      return order === 'asc'
-        ? valA.localeCompare(valB)
-        : valB.localeCompare(valA);
-    }
+        return (
+            `📊 ${r.symbol} | SL: ${r.qty}\n` +
+            `⚖️ ${r.avgPrice.toFixed(2)} → 💰 ${r.price}\n` +
+            `💵 Vốn: ${(r.avgPrice * r.qty).toLocaleString()}\n` +
+            `💰 Giá trị: ${(r.price * r.qty).toLocaleString()}\n` +
+            `${color} ${r.pl.toLocaleString()} (${r.percent.toFixed(2)}%)`
+        );
+    });
 
-    return order === 'asc' ? valA - valB : valB - valA;
-  });
-
-  // 🎯 format output
-  const lines = result.map((r) => {
-    const color = r.pl >= 0 ? '🟢' : '🔴';
-
-    return (
-      `📊 ${r.symbol} | SL: ${r.qty}\n` +
-      `⚖️ ${r.avgPrice.toFixed(2)} → 💰 ${r.price}\n` +
-      `${color} ${r.pl.toLocaleString()} (${r.percent.toFixed(2)}%)`
-    );
-  });
-
-  return lines.join('\n\n');
+    return lines.join('\n\n');
 }
 
 export async function handleBuyCommand(chatId, text, username) {

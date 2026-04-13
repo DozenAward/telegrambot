@@ -194,6 +194,8 @@
 
 
 import { handleMessage } from '../handlers/messageHandler.js';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 
 // ========================================
 // WEBHOOK HANDLER (Vercel)

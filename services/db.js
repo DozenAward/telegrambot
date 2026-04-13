@@ -5,26 +5,36 @@ const supabase = createClient(
     process.env.SUPABASE_KEY
 );
 
+
+
 // thêm giao dịch
-export async function addTransaction(chatId, symbol, price, qty, type = 'BUY') {
-    console.log('ENV:', process.env.SUPABASE_URL);
+export async function addTransaction(chatId,username, symbol, price, qty, fee ,add_fee, date_time, type = 'BUY') {
+    // console.log('ENV:', process.env.SUPABASE_URL);
 
     const { data, error } = await supabase
         .from('portfolio')
         .insert([
             {
                 chat_id: chatId,
+                username,
                 symbol,
                 price,
                 quantity: qty,
+                fee,
+                addition_fee: add_fee,
+                transaction_date: date_time,
                 type
             }
         ]);
 
-    console.log('DB RESULT:', data);
-    console.log('DB ERROR:', error);
+    if (error) {
+        console.error('❌ DB ERROR:', error);
 
-    return { data, error };
+        // 👉 throw lỗi ra ngoài
+        throw new Error(`DB insert failed: ${error.message}`);
+    }
+
+    return data;
 }
 
 export async function getTransactions(chatId, symbol) {

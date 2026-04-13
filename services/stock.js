@@ -62,3 +62,41 @@ export async function getStockPrice(symbol) {
     return `❌ Lỗi lấy dữ liệu ${symbol}`;
   }
 }
+
+
+export async function getStockPriceRaw(symbol) {
+  try {
+    const res = await fetch(
+      `https://iboard-query.ssi.com.vn/stock/${symbol}?boardId=MAIN`,
+      {
+        headers: {
+          accept: 'application/json, text/plain, */*',
+          referer: 'https://iboard.ssi.com.vn/',
+          'user-agent': 'Mozilla/5.0',
+          'api-key': 'Flh4hH9L.UCiJuphpJbPIKLyglbAem'
+        }
+      }
+    );
+
+    const json = await res.json();
+    // console.log("Data: "+json);
+    const d = json?.data;
+
+    if (!d) return 0;
+
+    // 🎯 lấy giá thị trường chuẩn
+    const currentPrice =
+      d.marketPrice ||
+      d.lastPrice ||
+      d.matchedPrice ||
+      d.best1Offer ||
+      d.best1Bid ||
+      0;
+
+    return Number(currentPrice);
+
+  } catch (e) {
+    console.error('❌ Stock error:', e.message);
+    return 0;
+  }
+}

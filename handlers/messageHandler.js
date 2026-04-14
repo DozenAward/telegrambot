@@ -123,12 +123,12 @@ Ví dụ: /pl -s ACB
 → Tạo cảnh báo giá
 Cú pháp:
   /alert -s mã_cp -p giá
-      (-op &lt; &gt;=|&lt;=|&gt;|&lt; &gt;) (-mess "message text")
+      -op ( &gt;=|&lt;=|&gt;|&lt; ) (-mess "message text")
 
 /alert_action
 → Thao tác với alert (update/delete)
 Cú pháp:
-  /alert_action -id &lt;alert_id&gt; (-state &lt;on|off|del&gt;)
+  /alert_action -id &lt;alert_id&gt; -state &lt;on|off|del&gt;
 
 /check_alert
 → Kiểm tra các cảnh báo

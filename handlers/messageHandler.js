@@ -61,12 +61,12 @@ export async function handleMessage(msg) {
       break;
     }
 
-    case '/alert-action': {
+    case '/alert_action': {
       message = await handleAlertActionCommand(chatId, text);
       break;
     }
 
-    case '/check-alert': {
+    case '/check_alert': {
       message = await checkAlerts();
       break;
     }
@@ -87,50 +87,50 @@ function getHelpMessage() {
   return `
 📌 DANH SÁCH LỆNH
 
-/start 
+/start
 → Xin chào, khởi động bot
 
-/xsmb 
+/xsmb
 → Xem kết quả xổ số miền Bắc
 
-/weather 
+/weather
 → Xem thông tin thời tiết
 
-/giavang 
+/giavang
 → Xem giá vàng hiện tại
 
-/stock <mã_cp> 
+/stock mã_cp
 → Xem giá cổ phiếu
 Ví dụ: /stock ACB
 
-/buy 
+/buy
 → Thực hiện giao dịch mua/bán cổ phiếu
 Cú pháp:
-  /buy -s <mã_cp> -p <giá> 
-       (-t <thời_gian>) 
-       (-fee <phí_giao_dịch>) 
-       (-af <phí_khác>) 
-       (-type <BUY|SELL>) (default: BUY)
+  /buy -s &lt;mã_cp&gt; -p giá
+       (-t &lt;thời_gian&gt; format yyyy-MM-dd)
+       (-fee &lt;phí_giao_dịch&gt;)
+       (-af &lt;phí_khác&gt;)
+       (-type &lt;BUY|SELL&gt;) (default: BUY)
 
-/pl (-s <mã_cp>) 
+/pl (-s &lt;mã_cp&gt;)
 → Tính toán lời/lỗ
 Ví dụ: /pl -s ACB
 
-/list_stock (-s <mã_cp>) 
+/list_stock (-s &lt;mã_cp&gt;)
 → Xem danh mục đầu tư
 
-/alert 
+/alert
 → Tạo cảnh báo giá
 Cú pháp:
-  /alert -s <mã_cp> -p <giá> 
-      (-op >=|<=|>|<) (-mess "message text")
+  /alert -s mã_cp -p giá
+      (-op &lt; &gt;=|&lt;=|&gt;|&lt; &gt;) (-mess "message text")
 
-/alert-action 
+/alert_action
 → Thao tác với alert (update/delete)
 Cú pháp:
-  /alert -id <mã_cảnh_báo> (-state <on|off|del>)
+  /alert_action -id &lt;alert_id&gt; (-state &lt;on|off|del&gt;)
 
-/check-alert 
+/check_alert
 → Kiểm tra các cảnh báo
 `;
 }

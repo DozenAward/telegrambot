@@ -194,7 +194,6 @@
 
 
 import { handleMessage } from '../handlers/messageHandler.js';
-import '../services/alert_service.js'; 
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 

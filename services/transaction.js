@@ -1,10 +1,83 @@
 import { getTransactions } from './db.js';
 import { getAllTransactions } from './db.js';
+import { updateAlertStatus } from './db.js';
 import { getStockPriceRaw } from './stock.js';
 import { CommandParser } from '../utils/CommandParser.js';
 import { PLCommand } from '../utils/PLCommand.js';
 import { BuyCommand } from '../utils/BuyCommand.js';
 import { addTransaction } from '../services/db.js';
+import { addAlert } from '../services/db.js';
+import { AlertCommand } from '../utils/AlertCommand.js';
+import { AlertAction } from '../utils/AlertAction.js';
+
+
+export async function handleAlertActionCommand(chatId, text) {
+  try {
+    const { options } = CommandParser.parse(text);
+    const cmd = new AlertAction(options);
+    cmd.validateAction();
+
+    let resultText = '';
+
+    if (cmd.state === 'on') {
+      const data = await updateAlertStatus(cmd.id, true);
+
+      resultText =
+        `🟢 Bật alert thành công\n` +
+        `🆔 ID: ${data.id}\n` +
+        `📊 ${data.symbol} ${data.operator} ${data.target_price}`;
+
+    } else if (cmd.state === 'off') {
+      const data = await updateAlertStatus(cmd.id, false);
+
+      resultText =
+        `🔴 Tắt alert\n` +
+        `🆔 ID: ${data.id}\n` +
+        `📊 ${data.symbol} ${data.operator} ${data.target_price}`;
+
+    } else if (cmd.state === 'del') {
+      await deleteAlert(cmd.id);
+
+      resultText =
+        `🗑️ Đã xoá alert\n` +
+        `🆔 ID: ${cmd.id}`;
+    }
+
+    return resultText;
+
+  } catch (err) {
+    return `❌ ${err.message}`;
+  }
+}
+
+export async function handleAlertCommand(chatId, text) {
+    try {
+        const { options } = CommandParser.parse(text);
+
+        const cmd = new AlertCommand(options);
+        cmd.validate();
+
+        const symbol = cmd.symbol;
+        const price = cmd.price;
+        const operator = cmd.operator;
+        const message = cmd.message;
+
+        const result = await addAlert(chatId, symbol, price, operator, message);
+
+        const status = result.is_active ? '🟢 ON' : '🔴 OFF';
+
+        return (
+            `✅ Đã tạo alert:\n` +
+            `🆔 ID: ${result.id}\n` +
+            `📊 ${result.symbol} ${result.operator} ${result.target_price}\n` +
+            `🔔 Trạng thái: ${status}\n` +
+            `💬 ${result.message}`
+        );
+    } catch (err) {
+        return `❌ ${err.message}`;
+    }
+}
+
 
 
 export async function getListStock(chatId, text) {
@@ -277,31 +350,3 @@ export function calculatePosition(transactions, currentPrice) {
     };
 }
 
-// export function calculatePosition(transactions, currentPrice) {
-//     let totalQty = 0;
-//     let totalCost = 0;
-
-//     for (const t of transactions) {
-//         const cost = t.price * t.quantity + (t.fee || 0) + (t.addition_fee || 0);
-
-//         if (t.type === 'BUY') {
-//             totalQty += t.quantity;
-//             totalCost += cost;
-//         }
-
-//         if (t.type === 'SELL') {
-//             totalQty -= t.quantity;
-//             totalCost -= cost; // đơn giản hóa
-//         }
-//     }
-
-//     if (totalQty <= 0) {
-//         return { totalQty: 0, avgPrice: 0, pl: 0, percent: 0 };
-//     }
-
-//     const avgPrice = totalCost / totalQty;
-//     const pl = (currentPrice * totalQty) - totalCost;
-//     const percent = (pl / totalCost) * 100;
-
-//     return { totalQty, avgPrice, pl, percent };
-// }

@@ -4,6 +4,9 @@ import { getGoldPrice } from '../services/gold.js';
 import { handlePLCommand } from '../services/transaction.js';
 import { handleBuyCommand } from '../services/transaction.js';
 import { getListStock } from '../services/transaction.js';
+import { handleAlertCommand } from '../services/transaction.js';
+import { handleAlertActionCommand } from '../services/transaction.js';
+import { checkAlerts } from '../services/alert_service.js';
 
 
 
@@ -50,6 +53,21 @@ export async function handleMessage(msg) {
 
     case '/pl': {
       message = await handlePLCommand(chatId, text);
+      break;
+    }
+
+    case '/alert': {
+      message = await handleAlertCommand(chatId, text);
+      break;
+    }
+
+    case '/alert-action': {
+      message = await handleAlertActionCommand(chatId, text);
+      break;
+    }
+
+    case '/check-alert': {
+      message = await checkAlerts();
       break;
     }
 

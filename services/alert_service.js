@@ -66,6 +66,7 @@ async function triggerAlert(alert, price) {
 
   await sendMessage(alert.chat_id, msg);
 
+  console.log("Off Alert")
   // ❗ Option: tắt luôn sau khi trigger
   await updateAlertStatus(alert.id, false);
 }

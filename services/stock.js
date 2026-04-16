@@ -1,3 +1,36 @@
+
+
+
+export async function getVNIndex() {
+  const res = await fetch(
+    'https://iboard-query.ssi.com.vn/exchange-index/VNINDEX?hasHistory=false',{
+      headers: {
+          'accept': 'application/json, text/plain, */*',
+          'referer': 'https://iboard.ssi.com.vn/',
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+          'api-key': 'Flh4hH9L.UCiJuphpJbPIKLyglbAem'
+
+        }
+    }
+  );
+
+  const json = await res.json();
+  const d = json?.data;
+
+  const color = d.change >= 0 ? '🟢' : '🔴';
+  const breadth = d.advances - d.declines;
+
+  const text =
+    `📊 VNINDEX: ${d.indexValue}\n` +
+    `⚖️ ${d.prevIndexValue} → ${d.indexValue}\n` +
+    `${color} ${d.change} (${d.changePercent}%)\n\n` +
+    `📈 Tăng: ${d.advances} | 📉 Giảm: ${d.declines}\n` +
+    `⚖️ Độ rộng: ${breadth}\n\n` +
+    `💰 GTGD: ${(d.totalValue / 1e12).toFixed(2)} nghìn tỷ`;
+
+  return text;
+}
+
 export async function getStockPrice(symbol) {
   try {
     const res = await fetch(

@@ -1,5 +1,6 @@
 import { sendMessage } from '../services/telegram.js';
 import { getStockPrice } from '../services/stock.js';
+import { getVNIndex } from '../services/stock.js';
 import { getGoldPrice } from '../services/gold.js';
 import { handlePLCommand } from '../services/transaction.js';
 import { handleBuyCommand } from '../services/transaction.js';
@@ -32,6 +33,11 @@ export async function handleMessage(msg) {
       message = await getGoldPrice();
       break;
 
+    case '/vnindex': {
+      message = await getVNIndex();
+      break;
+
+    }
     case '/stock':
       if (!symbol) {
         message = '❗ Nhập mã. Ví dụ: /stock ACB';
@@ -132,5 +138,8 @@ Cú pháp:
 
 /check_alert
 → Kiểm tra các cảnh báo
+
+/vnindex
+→ Lấy chỉ số vnindex
 `;
 }

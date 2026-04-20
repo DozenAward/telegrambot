@@ -1,4 +1,5 @@
 import { getTransactions } from './db.js';
+import { getTransactionById } from './db.js';
 import { getAllTransactions } from './db.js';
 import { updateAlertStatus } from './db.js';
 import { getStockPriceRaw } from './stock.js';
@@ -9,45 +10,47 @@ import { addTransaction } from '../services/db.js';
 import { addAlert } from '../services/db.js';
 import { AlertCommand } from '../utils/AlertCommand.js';
 import { AlertAction } from '../utils/AlertAction.js';
+import { updateTransaction } from '../services/db.js';
+
 
 
 export async function handleAlertActionCommand(chatId, text) {
-  try {
-    const { options } = CommandParser.parse(text);
-    const cmd = new AlertAction(options);
-    cmd.validateAction();
+    try {
+        const { options } = CommandParser.parse(text);
+        const cmd = new AlertAction(options);
+        cmd.validateAction();
 
-    let resultText = '';
+        let resultText = '';
 
-    if (cmd.state === 'on') {
-      const data = await updateAlertStatus(cmd.id, true);
+        if (cmd.state === 'on') {
+            const data = await updateAlertStatus(cmd.id, true);
 
-      resultText =
-        `🟢 Bật alert thành công\n` +
-        `🆔 ID: ${data.id}\n` +
-        `📊 ${data.symbol} ${data.operator} ${data.target_price}`;
+            resultText =
+                `🟢 Bật alert thành công\n` +
+                `🆔 ID: ${data.id}\n` +
+                `📊 ${data.symbol} ${data.operator} ${data.target_price}`;
 
-    } else if (cmd.state === 'off') {
-      const data = await updateAlertStatus(cmd.id, false);
+        } else if (cmd.state === 'off') {
+            const data = await updateAlertStatus(cmd.id, false);
 
-      resultText =
-        `🔴 Tắt alert\n` +
-        `🆔 ID: ${data.id}\n` +
-        `📊 ${data.symbol} ${data.operator} ${data.target_price}`;
+            resultText =
+                `🔴 Tắt alert\n` +
+                `🆔 ID: ${data.id}\n` +
+                `📊 ${data.symbol} ${data.operator} ${data.target_price}`;
 
-    } else if (cmd.state === 'del') {
-      await deleteAlert(cmd.id);
+        } else if (cmd.state === 'del') {
+            await deleteAlert(cmd.id);
 
-      resultText =
-        `🗑️ Đã xoá alert\n` +
-        `🆔 ID: ${cmd.id}`;
+            resultText =
+                `🗑️ Đã xoá alert\n` +
+                `🆔 ID: ${cmd.id}`;
+        }
+
+        return resultText;
+
+    } catch (err) {
+        return `❌ ${err.message}`;
     }
-
-    return resultText;
-
-  } catch (err) {
-    return `❌ ${err.message}`;
-  }
 }
 
 export async function handleAlertCommand(chatId, text) {
@@ -78,6 +81,19 @@ export async function handleAlertCommand(chatId, text) {
     }
 }
 
+export async function getList(chatId, text) {
+    const { options } = CommandParser.parse(text);
+
+    const symbol = options.s?.toUpperCase();
+    const sortBy = options.sort || 'symbol';
+
+    const data = await getAllTransactions(chatId, symbol);
+
+    const grouped = groupPortfolioFull(data);
+
+    return formatPortfolioDetail(grouped);
+}
+
 
 
 export async function getListStock(chatId, text) {
@@ -87,11 +103,11 @@ export async function getListStock(chatId, text) {
     const sortBy = options.sort || 'symbol';
     const order = (options.order || 'asc').toLowerCase();
 
-    let transactions = await getAllTransactions(chatId);
+    let transactions = await getAllTransactions(chatId, symbol);
 
-    if (symbol) {
-        transactions = transactions.filter((t) => t.symbol === symbol);
-    }
+    // if (symbol) {
+    //     transactions = transactions.filter((t) => t.symbol === symbol);
+    // }
 
     if (!transactions.length) {
         return '❗ Không có dữ liệu';
@@ -217,6 +233,51 @@ export async function handleBuyCommand(chatId, text, username) {
     } catch (err) {
         console.log(err);
         return `❌ ${err.message}`;
+    }
+}
+
+
+export async function handleEditCommand(chatId, text) {
+    try {
+        const { options } = CommandParser.parse(text);
+
+        const id = options.id;
+        if (!id) {
+            return '❌ Thiếu -id để chỉnh sửa giao dịch';
+        }
+        // check tồn tại
+        const existedData = await getTransactionById(chatId, id);
+        if (!existedData || existedData.length === 0) {
+            return `❌ Không tìm thấy giao dịch ID ${id}`;
+        }
+        // build payload từ options
+        const payload = {};
+
+        if (options.s) payload.symbol = options.s;
+        if (options.p) payload.price = Number(options.p);
+        if (options.q) payload.qty = Number(options.q);
+        if (options.fee) payload.fee = Number(options.fee);
+        if (options.af) payload.add_fee = Number(options.af);
+        if (options.t) payload.date_time = options.t;
+        if (options.type) payload.type = options.type.toUpperCase();
+
+        if (Object.keys(payload).length === 0) {
+            return '❌ Không có field nào để update';
+        }
+
+        console.log("payload ",payload);
+        const result = await updateTransaction(id, chatId, payload);
+        console.log("result ",result);
+
+        return `
+✅ Đã cập nhật giao dịch ID ${id}
+📊 Symbol: ${result[0].symbol}
+💰 Price: ${result[0].price}
+📦 Qty: ${result[0].quantity}
+`;
+    } catch (err) {
+        console.error(err);
+        return `❌ Lỗi: ${err.message}`;
     }
 }
 
@@ -350,3 +411,59 @@ export function calculatePosition(transactions, currentPrice) {
     };
 }
 
+
+function groupPortfolioFull(transactions) {
+    const map = {};
+
+    transactions.forEach(tx => {
+        const symbol = tx.symbol;
+
+        if (!map[symbol]) {
+            map[symbol] = {
+                symbol,
+                totalQty: 0,
+                totalCost: 0,
+                transactions: []
+            };
+        }
+
+        if (tx.type === 'BUY') {
+            map[symbol].totalQty += tx.quantity;
+            map[symbol].totalCost += tx.price * tx.quantity;
+        }
+
+        if (tx.type === 'SELL') {
+            map[symbol].totalQty -= tx.quantity;
+            map[symbol].totalCost -= tx.price * tx.quantity;
+        }
+
+        map[symbol].transactions.push(tx);
+    });
+
+    // 👉 tính avg price
+    return Object.values(map).map(item => ({
+        ...item,
+        avgPrice: item.totalQty > 0
+            ? item.totalCost / item.totalQty
+            : 0
+    }));
+}
+
+function formatPortfolioDetail(data) {
+    if (!data.length) return '📭 Không có danh mục';
+
+    return data.map(group => {
+        const header = `
+📊 ${group.symbol}
+📦 SL: ${group.totalQty}
+💰 Avg: ${group.avgPrice.toFixed(2)}
+-------------------`;
+
+        const txList = group.transactions.map(tx => {
+            const icon = tx.type === 'BUY' ? '🟢' : '🔴';
+            return `${icon} 🆔 ${tx.id} | ${tx.quantity} x ${tx.price}`;
+        }).join('\n');
+
+        return header + '\n' + txList;
+    }).join('\n\n');
+}

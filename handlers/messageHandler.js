@@ -4,9 +4,11 @@ import { getVNIndex } from '../services/stock.js';
 import { getGoldPrice } from '../services/gold.js';
 import { handlePLCommand } from '../services/transaction.js';
 import { handleBuyCommand } from '../services/transaction.js';
+import { getList } from '../services/transaction.js';
 import { getListStock } from '../services/transaction.js';
 import { handleAlertCommand } from '../services/transaction.js';
 import { handleAlertActionCommand } from '../services/transaction.js';
+import { handleEditCommand } from '../services/transaction.js';
 import { checkAlerts } from '../services/alert_service.js';
 
 
@@ -51,8 +53,20 @@ export async function handleMessage(msg) {
       break;
 
     }
+
+    case '/list': {
+      message = await getList(chatId, text, username);
+      break;
+
+    }
     case '/buy': {
       message = await handleBuyCommand(chatId, text, username);
+      break;
+
+    }
+
+    case '/edit': {
+      message = await handleEditCommand(chatId, text);
       break;
 
     }
@@ -118,9 +132,21 @@ Cú pháp:
        (-af &lt;phí_khác&gt;)
        (-type &lt;BUY|SELL&gt;) (default: BUY)
 
+/edit
+→ Thực hiện giao dịch mua/bán cổ phiếu
+Cú pháp:
+  /edit -id &lt;id&gt; -s &lt;mã_cp&gt; -p giá
+       (-t &lt;thời_gian&gt; format yyyy-MM-dd)
+       (-fee &lt;phí_giao_dịch&gt;)
+       (-af &lt;phí_khác&gt;)
+       (-type &lt;BUY|SELL&gt;)
+
 /pl (-s &lt;mã_cp&gt;)
 → Tính toán lời/lỗ
 Ví dụ: /pl -s ACB
+
+/list (-s &lt;mã_cp&gt;)
+→ Xem danh mục giao dịch
 
 /list_stock (-s &lt;mã_cp&gt;)
 → Xem danh mục đầu tư

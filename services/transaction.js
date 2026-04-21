@@ -265,9 +265,9 @@ export async function handleEditCommand(chatId, text) {
             return '❌ Không có field nào để update';
         }
 
-        console.log("payload ",payload);
+        console.log("payload ", payload);
         const result = await updateTransaction(id, chatId, payload);
-        console.log("result ",result);
+        console.log("result ", result);
 
         return `
 ✅ Đã cập nhật giao dịch ID ${id}
@@ -423,6 +423,7 @@ function groupPortfolioFull(transactions) {
                 symbol,
                 totalQty: 0,
                 totalCost: 0,
+                totalFee: 0,
                 transactions: []
             };
         }
@@ -430,10 +431,12 @@ function groupPortfolioFull(transactions) {
         if (tx.type === 'BUY') {
             map[symbol].totalQty += tx.quantity;
             map[symbol].totalCost += tx.price * tx.quantity;
+            map[symbol].totalFee += tx.fee + tx.addFee;
         }
 
         if (tx.type === 'SELL') {
             map[symbol].totalQty -= tx.quantity;
+            map[symbol].totalFee += tx.fee + tx.addFee;
             map[symbol].totalCost -= tx.price * tx.quantity;
         }
 
@@ -457,11 +460,28 @@ function formatPortfolioDetail(data) {
 📊 ${group.symbol}
 📦 SL: ${group.totalQty}
 💰 Avg: ${group.avgPrice.toFixed(2)}
+💸 Total Fee: ${(group.totalFee || 0).toFixed(2)}
 -------------------`;
 
         const txList = group.transactions.map(tx => {
             const icon = tx.type === 'BUY' ? '🟢' : '🔴';
-            return `${icon} 🆔 ${tx.id} | ${tx.quantity} x ${tx.price}`;
+
+            // format thời gian (tuỳ bạn lưu kiểu gì)
+            // console.log("created_at:", tx.created_at);
+            const time = tx.transaction_date
+                ? (() => {
+                    const d = new Date(tx.transaction_date);
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    return `${yyyy}${mm}${dd}`;
+                })()
+                : 'N/A';
+            const fee = tx.fee || 0;
+            const tax = tx.addFee || 0;
+
+            return `${icon}: ${tx.id} | ${tx.quantity} x ${tx.price} | 💸Fee: ${fee.toFixed(0)} | Tax: ${tax.toFixed(0)} | ${time}`;
+            
         }).join('\n');
 
         return header + '\n' + txList;

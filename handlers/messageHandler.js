@@ -126,7 +126,7 @@ Ví dụ: /stock ACB
 /buy
 → Thực hiện giao dịch mua/bán cổ phiếu
 Cú pháp:
-  /buy -s &lt;mã_cp&gt; -p giá
+  /buy -s &lt;mã_cp&gt; -p giá -m &lt;khối_lượng_giao_dịch&gt;
        (-t &lt;thời_gian&gt; format yyyy-MM-dd)
        (-fee &lt;phí_giao_dịch&gt;)
        (-af &lt;phí_khác&gt;)
@@ -136,6 +136,7 @@ Cú pháp:
 → Thực hiện giao dịch mua/bán cổ phiếu
 Cú pháp:
   /edit -id &lt;id&gt; -s &lt;mã_cp&gt; -p giá
+       (-m &lt;khối_lượng_giao_dịch&gt;)
        (-t &lt;thời_gian&gt; format yyyy-MM-dd)
        (-fee &lt;phí_giao_dịch&gt;)
        (-af &lt;phí_khác&gt;)

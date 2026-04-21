@@ -95,7 +95,7 @@ export async function updateTransaction(id, chatId, payload) {
         .eq('id', Number(id))
         .eq('chat_id', chatId) // 🔥 thêm lại cái này
         .select()
-        // .single()
+        .single()
         ;
 
     if (error) {

@@ -271,9 +271,9 @@ export async function handleEditCommand(chatId, text) {
 
         return `
 ✅ Đã cập nhật giao dịch ID ${id}
-📊 Symbol: ${result[0].symbol}
-💰 Price: ${result[0].price}
-📦 Qty: ${result[0].quantity}
+📊 Symbol: ${result.symbol}
+💰 Price: ${result.price}
+📦 Qty: ${result.quantity}
 `;
     } catch (err) {
         console.error(err);

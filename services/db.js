@@ -9,6 +9,7 @@ const supabase = createClient(
 
 
 
+
 export async function getActiveAlerts() {
     const { data, error } = await supabase
         .from('price_alerts')

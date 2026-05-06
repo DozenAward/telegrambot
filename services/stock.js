@@ -31,6 +31,19 @@ export async function getVNIndex() {
   return text;
 }
 
+export async function getStockListPrice(symbols = []) {
+  try {
+    const results = await Promise.all(
+      symbols.map(s => getStockPrice(s))
+    );
+    console.log("results ");
+    return results.join('\n\n────────────\n\n');
+  } catch (e) {
+    console.error(e);
+    return '❌ Lỗi lấy danh sách';
+  }
+}
+
 export async function getStockPrice(symbol) {
   try {
     const res = await fetch(

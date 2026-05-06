@@ -481,9 +481,27 @@ function formatPortfolioDetail(data) {
             const tax = tx.addFee || 0;
 
             return `${icon}: ${tx.id} | ${tx.quantity} x ${tx.price} | 💸Fee: ${fee.toFixed(0)} | Tax: ${tax.toFixed(0)} | ${time}`;
-            
+
         }).join('\n');
 
         return header + '\n' + txList;
     }).join('\n\n');
+}
+
+export async function getMyStockList(chatId) {
+
+    let transactions = await getAllTransactions(chatId, null);
+    const grouped = {};
+
+    for (const t of transactions) {
+        if (!grouped[t.symbol]) {
+            grouped[t.symbol] = [];
+        }
+        grouped[t.symbol].push(t);
+    }
+
+    const symbols = [...new Set(transactions.map(t => t.symbol))];
+        console.log("My Stock Symbol "+symbols);
+
+    return symbols;
 }

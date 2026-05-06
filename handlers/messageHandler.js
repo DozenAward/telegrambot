@@ -10,6 +10,8 @@ import { handleAlertCommand } from '../services/transaction.js';
 import { handleAlertActionCommand } from '../services/transaction.js';
 import { handleEditCommand } from '../services/transaction.js';
 import { checkAlerts } from '../services/alert_service.js';
+import { getMyStockList } from '../services/transaction.js';
+import { getStockListPrice } from '../services/stock.js';
 
 
 
@@ -41,10 +43,31 @@ export async function handleMessage(msg) {
 
     }
     case '/stock':
-      if (!symbol) {
-        message = '❗ Nhập mã. Ví dụ: /stock ACB';
+  if (!symbol) {
+    message = '❗ Nhập mã. Ví dụ: /stock ACB hoặc /stock ACB,VNM';
+  } else {
+    const symbols = symbol
+      .split(',')
+      .map(s => s.trim().toUpperCase())
+      .filter(Boolean);
+
+    if (symbols.length === 1) {
+      // 👉 giữ logic cũ
+      message = await getStockPrice(symbols[0]);
+    } else {
+      // 👉 nhiều mã
+      message = await getStockListPrice(symbols);
+    }
+  }
+  break;
+
+    case '/my_list':
+      const list = await getMyStockList(chatId);
+
+      if (!list.length) {
+        message = '❗ Danh sách trống';
       } else {
-        message = await getStockPrice(symbol.toUpperCase());
+        message = await getStockListPrice(list);
       }
       break;
 

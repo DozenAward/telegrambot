@@ -12,6 +12,7 @@ import { handleEditCommand } from '../services/transaction.js';
 import { checkAlerts } from '../services/alert_service.js';
 import { getMyStockList } from '../services/transaction.js';
 import { getStockListPrice } from '../services/stock.js';
+import { calPortfolioAllocation } from '../services/transaction.js'
 
 
 
@@ -82,6 +83,14 @@ export async function handleMessage(msg) {
       break;
 
     }
+
+    case '/group_ml': {
+      message = await calPortfolioAllocation(chatId);
+      console.log("Message ml "+message);
+      break;
+
+    }
+
     case '/buy': {
       message = await handleBuyCommand(chatId, text, username);
       break;
@@ -188,6 +197,9 @@ Cú pháp:
 
 /check_alert
 → Kiểm tra các cảnh báo
+
+/my_list
+→ Kiểm tra các danh mục cổ phiếu hiện hữu
 
 /vnindex
 → Lấy chỉ số vnindex

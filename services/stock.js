@@ -125,7 +125,7 @@ export async function getStockPriceRaw(symbol) {
     );
 
     const json = await res.json();
-    console.log("Data: "+JSON.stringify(json, null, 2));
+    // console.log("Data: "+JSON.stringify(json, null, 2));
     const d = json?.data;
 
     if (!d) return 0;

@@ -8,8 +8,6 @@ const supabase = createClient(
 
 
 
-
-
 export async function getActiveAlerts() {
     const { data, error } = await supabase
         .from('price_alerts')
@@ -178,15 +176,48 @@ export async function getAllTransactions(chatId, symbol) {
     if (symbol) {
         query = query.eq('symbol', symbol.toUpperCase());
     }
-    const { data, error } = await query;
+    const { data: portfolio, error } = await query;
+
 
     if (error) {
         console.error(error);
         return [];
     }
 
-    return data;
+    const { data: stocks, error2 } = await supabase
+        .from('stock')
+        .select('*');
+
+        console.log('stocks:', stocks);
+        console.log('error:', error2);
+    const stockMap = Object.fromEntries(
+        stocks.map(s => [s.stock_code, s])
+    );
+    console.log(stocks.map(s => s.stock_code));
+    // console.log(portfolio.map(p => p.symbol));
+    return portfolio.map(p => ({
+        ...stockMap[p.symbol], // stock fields
+        ...p                  // portfolio override nếu trùng key
+    }));
 }
+
+
+export async function getGroupAsset(chatId, symbol) {
+    let query = supabase
+        .from('portfolio_with_stock')
+        .select('*')
+        .eq('chat_id', chatId)        ;
+
+    const { data: portfolio, error } = await query;
+    console.log(JSON.stringify(portfolio, null, 2));
+
+    if (error) {
+        console.error("Get Data Error "+ error);
+        return [];
+    }
+    return portfolio;
+}
+
 
 // lấy dữ liệu
 export async function getPosition(chatId, symbol) {

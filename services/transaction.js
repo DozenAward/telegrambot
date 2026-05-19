@@ -11,6 +11,7 @@ import { addAlert } from '../services/db.js';
 import { AlertCommand } from '../utils/AlertCommand.js';
 import { AlertAction } from '../utils/AlertAction.js';
 import { updateTransaction } from '../services/db.js';
+import { getGroupAsset } from '../services/db.js';
 
 
 
@@ -501,7 +502,60 @@ export async function getMyStockList(chatId) {
     }
 
     const symbols = [...new Set(transactions.map(t => t.symbol))];
-        console.log("My Stock Symbol "+symbols);
+    console.log("My Stock Symbol " + symbols);
 
     return symbols;
+}
+
+// export async function calPortfolioAllocation(chatId) {
+//     const allocation = await getPortfolioAllocation(chatId);
+//     const lines = allocation.map(a =>
+//         `📂 ${a.category}\n` +
+//         `💰 ${a.value.toLocaleString()}\n` +
+//         `📊 ${a.percent.toFixed(2)}%`
+//     );
+
+//     return lines.join('\n\n');
+// }
+
+export async function calPortfolioAllocation(chatId) {
+    let datas = await getGroupAsset(chatId);
+    // console.log("Data: " + JSON.stringify(datas, null, 2));
+    let bucket = 0;
+    const map = new Map();
+    for (const element of datas){
+        console.log("Element: " + JSON.stringify(element, null, 2));
+        const price =await getStockPriceRaw(element.symbol);
+        // console.log("Element: " + JSON.stringify(price, null, 2));
+
+        const value = price * element.quantity;
+        bucket += value;
+        const type = element.stock_type || 'Khác';
+
+        map.set(
+            type,
+            (map.get(type) || 0) + value
+        );
+    };
+
+    console.log('Total bucket:', bucket);
+
+    const grouped = Array.from(map.entries()).map(
+        ([type, value]) => ({
+            type,
+            value,
+            percent: bucket
+                ? (value / bucket) * 100
+                : 0
+        })
+    );
+
+    const lines = grouped.map(g =>
+        `📂 ${g.type}\n` +
+        `💰 ${g.value.toLocaleString()}\n` +
+        `📊 ${g.percent.toFixed(2)}%`
+    );
+
+    return lines.join('\n\n');
+
 }

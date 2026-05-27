@@ -153,7 +153,7 @@ export async function getStockEventHistory(symbol, startDate, endDate) {
     console.log("ma cp" + symbol + ", from " + startDate + "  to " + endDate);
 
     const res = await fetch(
-      `https://iboard-api.ssi.com.vn/statistics/company/ssmi/corporate-actions?pageSize=50&page=1&language=vn&symbol=${symbol}&fromDate=${startDate}&toDate=${endDate}&eventCode=DIV`,
+      `https://iboard-api.ssi.com.vn/statistics/company/ssmi/corporate-actions?pageSize=50&page=1&language=vn&symbol=${symbol}&fromDate=${startDate}&toDate=${endDate}&eventCode=DIV,ISS`,
       {
         headers: {
           accept: 'application/json, text/plain, */*',
@@ -199,9 +199,9 @@ export async function formatEventHistory(data) {
   }
 
   const typeLabel = {
-    DIV: '💰 Cổ tức tiền mặt',
-    ISS: '📄 Phát hành thêm',
-    BON: '🎁 Cổ tức cổ phiếu',
+    DIV: '💰 Tiền mặt',
+    ISS: '🎁 Cổ phiếu',
+    BON: '🎁 Cổ phiếu',
   };
 
   const lines = data.events.map((e, i) => {
@@ -210,10 +210,10 @@ export async function formatEventHistory(data) {
     const value = e.value.toLocaleString('vi-VN') + ' đ/CP';
 
     return [
-      `${i + 1}. ${type} — ${ratio} (${value})`,
-      `   📅 Không hưởng quyền: ${e.exrightDate}`,
-      `   📅 Chốt DSCD: ${e.recordDate}`,
-      `   📅 Thanh toán: ${e.issueDate} \n`,
+      `${i + 1}. ${e.recordDate}: ${type} — ${ratio}`,
+      // `   📅 Không hưởng quyền: ${e.exrightDate}`,
+      // `   📅 Chốt DSCD: ${e.recordDate}`,
+      // `   📅 Thanh toán: ${e.issueDate} \n`,
     ].join('\n');
   });
 

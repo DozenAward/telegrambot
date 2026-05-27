@@ -12,6 +12,7 @@ import { handleEditCommand } from '../services/transaction.js';
 import { checkAlerts } from '../services/alert_service.js';
 import { getMyStockList } from '../services/transaction.js';
 import { getStockListPrice } from '../services/stock.js';
+import { getStockEventHistory } from '../services/stock.js';
 import { calPortfolioAllocation } from '../services/transaction.js'
 
 
@@ -43,24 +44,40 @@ export async function handleMessage(msg) {
       break;
 
     }
-    case '/stock':
-  if (!symbol) {
-    message = '❗ Nhập mã. Ví dụ: /stock ACB hoặc /stock ACB,VNM';
-  } else {
-    const symbols = symbol
-      .split(',')
-      .map(s => s.trim().toUpperCase())
-      .filter(Boolean);
 
-    if (symbols.length === 1) {
-      // 👉 giữ logic cũ
-      message = await getStockPrice(symbols[0]);
-    } else {
-      // 👉 nhiều mã
-      message = await getStockListPrice(symbols);
+    case '/event_history': {
+
+      const { options } = CommandParser.parse(text);
+
+      const symbol = options.s?.toUpperCase();
+
+
+      const { start, end } = getDateRange();
+      const startDate = options.from || start;
+      const endDate = options.to || end;
+
+      message = await getStockEventHistory(symbol,startDate,endDate,null,null);
+      break;
+
     }
-  }
-  break;
+    case '/stock':
+      if (!symbol) {
+        message = '❗ Nhập mã. Ví dụ: /stock ACB hoặc /stock ACB,VNM';
+      } else {
+        const symbols = symbol
+          .split(',')
+          .map(s => s.trim().toUpperCase())
+          .filter(Boolean);
+
+        if (symbols.length === 1) {
+          // 👉 giữ logic cũ
+          message = await getStockPrice(symbols[0]);
+        } else {
+          // 👉 nhiều mã
+          message = await getStockListPrice(symbols);
+        }
+      }
+      break;
 
     case '/my_list':
       const list = await getMyStockList(chatId);
@@ -86,7 +103,7 @@ export async function handleMessage(msg) {
 
     case '/group_ml': {
       message = await calPortfolioAllocation(chatId);
-      console.log("Message ml "+message);
+      console.log("Message ml " + message);
       break;
 
     }
@@ -134,6 +151,23 @@ export async function handleMessage(msg) {
   await sendMessage(chatId, message);
 }
 
+function getDateRange() {
+  const now = new Date();
+  const threeYearsAgo = new Date(now);
+  threeYearsAgo.setFullYear(now.getFullYear() - 3);
+
+  const format = (date) => {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  };
+
+  return {
+    startDate: format(threeYearsAgo),
+    endDate: format(now)
+  };
+}
 
 function getHelpMessage() {
   return `

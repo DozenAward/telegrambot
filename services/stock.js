@@ -3,15 +3,15 @@
 
 export async function getVNIndex() {
   const res = await fetch(
-    'https://iboard-query.ssi.com.vn/exchange-index/VNINDEX?hasHistory=false',{
-      headers: {
-          'accept': 'application/json, text/plain, */*',
-          'referer': 'https://iboard.ssi.com.vn/',
-          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-          'api-key': 'Flh4hH9L.UCiJuphpJbPIKLyglbAem'
+    'https://iboard-query.ssi.com.vn/exchange-index/VNINDEX?hasHistory=false', {
+    headers: {
+      'accept': 'application/json, text/plain, */*',
+      'referer': 'https://iboard.ssi.com.vn/',
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      'api-key': 'Flh4hH9L.UCiJuphpJbPIKLyglbAem'
 
-        }
     }
+  }
   );
 
   const json = await res.json();
@@ -48,7 +48,7 @@ export async function getStockPrice(symbol) {
   try {
     const res = await fetch(
       `https://iboard-query.ssi.com.vn/stock/${symbol}?boardId=MAIN`,
-       {
+      {
         headers: {
           'accept': 'application/json, text/plain, */*',
           'referer': 'https://iboard.ssi.com.vn/',
@@ -145,4 +145,50 @@ export async function getStockPriceRaw(symbol) {
     console.error('❌ Stock error:', e.message);
     return 0;
   }
+
+
+  export async function getStockEventHistory(symbol, startDate, endDate, eventCode = 'DIV,ISS', pSize = 50) {
+    try {
+      const encodedEventCode = eventCode.split(',').join('%2C');
+
+      const res = await fetch(
+        `https://iboard-api.ssi.com.vn/statistics/company/ssmi/corporate-actions?pageSize=${pSize}&page=1&language=vn&symbol=${symbol}&fromDate=${startDate}&toDate=${endDate}&eventCode=${encodedEventCode}`,
+        {
+          headers: {
+            accept: 'application/json, text/plain, */*',
+            referer: 'https://iboard.ssi.com.vn/',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'api-key': 'Flh4hH9L.UCiJuphpJbPIKLyglbAem'
+          }
+        }
+      );
+
+      const json = await res.json();
+
+      if (json.code !== 'SUCCESS' || !json.data?.length) {
+        return { symbol, events: [] };
+      }
+
+      return {
+        symbol,
+        exchange: json.data[0]?.exchange ?? null,
+        events: json.data.map(item => ({
+          name: item.eventName,
+          type: item.eventListCode,       // 'DIV' | 'ISS' | ...
+          exrightDate: item.exrightDate,         // ngày không hưởng quyền
+          recordDate: item.recordDate,          // ngày chốt DSCD
+          issueDate: item.issueDate,           // ngày thực hiện / thanh toán
+          publicDate: item.publicDate,          // ngày công bố
+          value: Number(item.value),       // tiền mặt (đồng) hoặc số lượng CP
+          ratio: Number(item.ratio),       // tỷ lệ (0.05 = 5%)
+          title: item.eventTitle,
+        }))
+      };
+
+    } catch (e) {
+      console.error('❌ Stock error:', e.message);
+      return { symbol, events: [] };
+    }
+  }
+
 }

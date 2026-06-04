@@ -113,7 +113,8 @@ export async function formatVNGoldMessage() {
 export async function getGoldPriceVN() {
   try {
     const res = await axios.get(
-      'http://api.btmc.vn/api/BTMCAPI/getpricebtmc?key=3kd8ub1llcg9t45hnoh8hmn7t5kc2v'
+      'http://api.btmc.vn/api/BTMCAPI/getpricebtmc?key=3kd8ub1llcg9t45hnoh8hmn7t5kc2v',
+       { timeout: 10000 }
     );
 
     const dataList = res.data?.DataList?.Data || [];

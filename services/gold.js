@@ -12,19 +12,17 @@ function formatMoney(num) {
 export async function getGoldPrice() {
   try {
     // 🇻🇳 lấy vàng VN (array)
-    const vnGoldList = await getGoldPriceVN();
+    const sjc = await getGoldPriceVN();
 
     // 🌍 lấy vàng thế giới (VND / ounce)
     const globalGold = await getGoldPriceGlobal();
 
-    if (!vnGoldList.length || !globalGold) {
+
+    if (!sjc || !globalGold) {
       return '❗ Không lấy được dữ liệu vàng';
     }
 
-    // 👉 lấy SJC
-    const sjc = vnGoldList.find((g) =>
-      g.name.includes('SJC')
-    );
+
 
     if (!sjc) {
       return '❗ Không tìm thấy giá SJC';
@@ -35,8 +33,8 @@ export async function getGoldPrice() {
     const globalPerLuong = globalGold * OUNCE_TO_LUONG;
 
     // 🎯 VN giá bán
-    const vnPrice = sjc.sell * 10;
-    const sjcBuy = sjc.buy * 10;
+    const vnPrice = sjc.sell ;
+    const sjcBuy = sjc.buy;
 
     // 📊 tính chênh lệch
     const diff = vnPrice - globalPerLuong;
@@ -110,31 +108,62 @@ export async function formatVNGoldMessage() {
 }
 
 
+// export async function getGoldPriceVN() {
+//   try {
+//     const res = await axios.get(
+//       'http://api.btmc.vn/api/BTMCAPI/getpricebtmc?key=3kd8ub1llcg9t45hnoh8hmn7t5kc2v',
+//        { timeout: 10000 }
+//     );
+
+//     const dataList = res.data?.DataList?.Data || [];
+
+//     const result = dataList.map((item) => {
+//       const index = item['@row'];
+
+//       const name = item[`@n_${index}`];
+//       const buy = Number(item[`@pb_${index}`]);
+//       const sell = Number(item[`@ps_${index}`]);
+//       const date = item[`@d_${index}`];
+
+//       return {
+//         name,
+//         buy,
+//         sell,
+//         date,
+//       };
+//     });
+
+//     return result;
+
+//   } catch (err) {
+//     console.error(err);
+//     return [];
+//   }
+// }
+
 export async function getGoldPriceVN() {
   try {
-    const res = await axios.get(
-      'http://api.btmc.vn/api/BTMCAPI/getpricebtmc?key=3kd8ub1llcg9t45hnoh8hmn7t5kc2v'
+    const { data } = await axios.get(
+      'https://www.vang.today/api/prices?type=BTSJC',
+      { timeout: 10000 }
     );
 
-    const dataList = res.data?.DataList?.Data || [];
+    console.log(JSON.stringify(data, null, 2));
 
-    const result = dataList.map((item) => {
-      const index = item['@row'];
 
-      const name = item[`@n_${index}`];
-      const buy = Number(item[`@pb_${index}`]);
-      const sell = Number(item[`@ps_${index}`]);
-      const date = item[`@d_${index}`];
+    const name = data.name;
+    const buy = Number(data.buy);
+    const sell = Number(data.sell);
+    const date = data.date;
 
-      return {
-        name,
-        buy,
-        sell,
-        date,
-      };
-    });
+    return {
+      name,
+      buy,
+      sell,
+      date,
+    };
 
-    return result;
+
 
   } catch (err) {
     console.error(err);

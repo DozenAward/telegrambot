@@ -13,7 +13,12 @@ import { checkAlerts } from '../services/alert_service.js';
 import { getMyStockList } from '../services/transaction.js';
 import { getStockListPrice } from '../services/stock.js';
 import { getStockEventHistory } from '../services/stock.js';
-import { calPortfolioAllocation } from '../services/transaction.js'
+import { formatEventHistory } from '../services/stock.js';
+import { calPortfolioAllocation } from '../services/transaction.js';
+
+
+import { CommandParser } from '../utils/CommandParser.js';
+
 
 
 
@@ -52,11 +57,14 @@ export async function handleMessage(msg) {
       const symbol = options.s?.toUpperCase();
 
 
-      const { start, end } = getDateRange();
-      const startDate = options.from || start;
-      const endDate = options.to || end;
+      const { startDate, endDate } = getDateRange();
+      const finalStart = options.from || startDate;
+      const finalEnd = options.to || endDate;
+      // console.log(start+" to "+end);
 
-      message = await getStockEventHistory(symbol,startDate,endDate,null,null);
+      const data = await getStockEventHistory(symbol,finalStart,finalEnd);
+      console.log("Data2: " + JSON.stringify(data, null, 2));
+      message = await formatEventHistory(data);
       break;
 
     }

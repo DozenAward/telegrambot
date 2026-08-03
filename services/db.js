@@ -1,15 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 
-// const supabase = createClient(
-//     process.env.SUPABASE_URL,
-//     process.env.SUPABASE_KEY
-// );
-
-
 const supabase = createClient(
-    'https://grbrkaazcbpvstuyelzp.supabase.co',
-    'sb_publishable_3EaBv18a-ziWelFltRhDHA_xI6sRHD8'
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_KEY
 );
+
 
 
 
